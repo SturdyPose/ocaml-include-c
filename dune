@@ -1,0 +1,44 @@
+(library
+ (name cpp_generator)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test))
+ (foreign_stubs
+  (language c)
+  (names int16_bindings uint32_bindings uint64_bindings ptrs_bindings))
+)
+
+
+
+(rule
+ (targets generate_c_bindings.exe)
+ (deps main.cpp test.h)
+ (action
+  (progn
+   ;; Copy libclang.dll if it does not exist
+    (run powershell -Command "
+    $clangPath = (Get-Command clang).Source
+    $clangDirectory = Split-Path $clangPath
+    $clangRoot = Split-Path -Parent (Split-Path -Parent $clangPath)
+    $clangDll = Join-Path $clangDirectory 'libclang.dll'
+
+    $clangLib = Join-Path $clangRoot 'lib'
+    $clangInclude = Join-Path $clangRoot 'include'
+
+    if (-Not (Test-Path './libclang.dll')) {
+        Copy-Item $clangDll './libclang.dll'
+    }
+
+    echo $clangLib
+
+    & clang++ `
+        -std=c++20 -Wall -Wextra `
+        main.cpp `
+        -o generate_c_bindings.exe `
+        -I $clangInclude `
+        -L $clangLib `
+        -l\"libclang.lib\"
+    
+    & ./generate_c_bindings.exe
+    "))))
+
+    ; & clang++ -std=c++20 -Wall -Wextra main.cpp -I$clangInclude -L$clangLib -lclang -o generate_c_bindings.exe 
