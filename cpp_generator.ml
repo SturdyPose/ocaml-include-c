@@ -1,6 +1,55 @@
 
 type 'a ptr
 
+module Int8 = struct
+  type t
+  external _zero : unit -> t = "caml_zero_int8"
+  let zero = _zero ()
+  external _one: unit -> t = "caml_one_int8"
+  let one = _one ()
+  external _max_int: unit -> t = "caml_max_int_int8"
+  external _min_int: unit -> t = "caml_min_int_int8"
+  let max_int = _max_int ()
+  let min_int = _min_int ()
+  external add: t -> t -> t = "caml_add_int8"
+  external sub: t -> t -> t = "caml_sub_int8"
+  external mul: t -> t -> t = "caml_mul_int8"
+  external div: t -> t -> t = "caml_div_int8"
+  external rem: t -> t -> t = "caml_rem_int8"
+  external equal: t -> t -> bool = "caml_equal_int8"
+  external min: t -> t -> t = "caml_min_int8"
+  external max: t -> t -> t = "caml_max_int8"
+  external of_int: int -> t = "caml_int_to_int8"
+  external of_int32: int32 -> t = "caml_int32_to_int8"
+  external of_int64: int64 -> t = "caml_int64_to_int8"
+  external of_int64_opt: int64 -> t option = "caml_int64_to_int8_opt"
+  external to_int32: t -> int32 = "caml_int8_to_int32"
+  (* Doesn't do bound checking *)
+  external to_int: t -> int = "caml_int8_to_int"
+  external to_float: t -> float = "caml_int8_to_float"
+  external of_nativeint: nativeint -> t = "caml_int8_to_nativeint"
+  external to_nativeint: t -> nativeint = "caml_nativeint_to_int8"
+  external to_nativeint_opt: t -> nativeint = "caml_nativeint_to_int8_opt"
+  let succ a = add a one
+  let pred a = sub a one
+  external seeded_hash_param :
+    int -> int -> int -> t -> int = "caml_hash" [@@noalloc]
+  let seeded_hash seed x = seeded_hash_param 10 100 seed x
+  external of_string : string -> t = "caml_string_to_int8"
+  external of_stringopt : string -> t option = "caml_string_to_int8_opt"
+  external format_int8: string -> t -> string = "caml_int8_to_string"
+  external _formatter: unit -> string = "caml_int8_formatter"
+  let formatter = "%" ^ _formatter ()
+  let to_string x = format_int8 formatter x
+  external logand: t -> t -> t = "caml_int8_logand"
+  external logor: t -> t -> t = "caml_int8_logor"
+  external logxor: t -> t -> t = "caml_int8_logxor"
+  external lognot: t -> t = "caml_int8_lognot"
+  external shift_left: t -> t -> t = "caml_int8_shift_left"
+  external shift_right: t -> t -> t = "caml_int8_shift_right"
+end
+
+
 module Int16 = struct
   type t
   external _zero : unit -> t = "caml_zero_int16"

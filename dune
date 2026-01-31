@@ -4,7 +4,7 @@
  (preprocess (pps ppx_inline_test))
  (foreign_stubs
   (language c)
-  (names int16_bindings uint32_bindings uint64_bindings ptrs_bindings))
+  (names int8_bindings int16_bindings uint32_bindings uint64_bindings ptrs_bindings))
 )
 
 
