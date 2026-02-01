@@ -15,8 +15,6 @@
 
 #include "shared.h"
 
-// TODO: Add support for 32bit and 16bit platforms
-
 #define Ptr_val(v) (*(void **)Data_custom_val(v))
 
 static void finalize_ptr(value v) {
@@ -35,8 +33,11 @@ static struct custom_operations alloc_ops = {"alloc_ops",
                                              custom_compare_ext_default,
                                              custom_fixed_length_default};
 
-static struct custom_operations derived_ptr_ops = {
-    "derived_ptr_ops",          custom_finalize_default,
+
+
+
+static struct custom_operations manual_ptr_ops = {
+    "manual_ptr_ops",           custom_finalize_default,
     custom_compare_default,     custom_hash_default,
     custom_serialize_default,   custom_deserialize_default,
     custom_compare_ext_default, custom_fixed_length_default};
@@ -50,7 +51,7 @@ CAMLprim value caml_ptr_alloc(value size) {
   if (pValue == NULL)
     caml_failwith("Malloc failed in caml_ptr_alloc");
 
-  p = caml_alloc_custom(&alloc_ops, sizeof(void *), 0, 1);
+  p = caml_alloc_custom(&manual_ptr_ops, sizeof(void *), 0, 1);
   Ptr_val(p) = pValue;
   CAMLreturn(p);
 }
@@ -63,7 +64,7 @@ CAMLprim value caml_ptr_add(value ptr, value offset) {
 
   // TODO: Maybe utilize small block allocations instead of this?
   void *newPtr = (void *)(p + off);
-  ptrRes = caml_alloc_custom(&derived_ptr_ops, sizeof(void *), 0, 1);
+  ptrRes = caml_alloc_custom(&manual_ptr_ops, sizeof(void *), 0, 1);
   Ptr_val(ptrRes) = newPtr;
 
   CAMLreturn(ptrRes);
@@ -77,10 +78,16 @@ CAMLprim value caml_ptr_sub(value ptr, value offset) {
 
   // TODO: Maybe utilize small block allocations instead of this?
   void *newPtr = (void *)(p - off);
-  ptrRes = caml_alloc_custom(&derived_ptr_ops, sizeof(void *), 0, 1);
+  ptrRes = caml_alloc_custom(&manual_ptr_ops, sizeof(void *), 0, 1);
   Ptr_val(ptrRes) = newPtr;
 
   CAMLreturn(ptrRes);
+}
+
+CAMLprim value caml_ptr_free(value ptr) {
+  CAMLparam1(ptr);
+  void* p = Ptr_val(ptr);
+  free(p);
 }
 
 #define CREATE_PRIMITIVE(name, type, default_val)                              \

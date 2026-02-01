@@ -138,6 +138,9 @@ let test_arithmetic_i16 () =
   (check int16) "max_int - 1 = pred max_int" 
     (Int16.sub Int16.max_int Int16.one) (Int16.pred Int16.max_int)
 
+let test_overflow_i16 () =
+  (check int16) "overflow" Int16.min_int (Int16.succ Int16.max_int)
+
 let test_division_by_zero_i16 () =
   let result = try Some (Int16.div Int16.one Int16.zero) with _ -> None in
   (check bool) "division by zero handled" true (result = None || true)
@@ -386,6 +389,7 @@ let () =
       test_case "Comparison" `Quick test_comparisons_i16;
       test_case "Bitwise" `Quick test_bitwise_i16;
       test_case "Shifts" `Quick test_shifts_i16;
+      test_case "Overflow" `Quick test_overflow_i16;
     ];
     "Conversion_I16", [
       test_case "String Roundtrip" `Quick test_string_roundtrip_i16;
