@@ -18,7 +18,10 @@
   #error TBD pointer size
 #endif
 
+#define Int8_val(v) (*((int8_t *)Data_custom_val(v)))
 #define Int16_val(v) (*((int16_t *)Data_custom_val(v)))
+#define UInt8_val(v) (*((uint8_t *)Data_custom_val(v)))
+#define UInt16_val(v) (*((uint16_t *)Data_custom_val(v)))
 #define UInt32_val(v) (*((uint32_t *)Data_custom_val(v)))
 #define UInt64_val(v) (*((uint64_t *)Data_custom_val(v)))
 

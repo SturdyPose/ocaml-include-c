@@ -16,8 +16,6 @@
 
 #include "shared.h"
 
-#define Int8_val(v) (*((int8_t *)Data_custom_val(v)))
-
 static const struct custom_fixed_length int8_length = {sizeof(int8_t),
                                                          sizeof(int8_t)};
 
