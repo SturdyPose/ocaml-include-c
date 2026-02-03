@@ -316,6 +316,7 @@ let sizeof: type a. a primitive -> Nativeint.t = function
 
 module CInteract = struct
   external ptr_alloc: size: nativeint -> 'a ptr = "caml_ptr_alloc"
+  external ptr_free: 'a ptr -> unit = "caml_ptr_free"
   external ptr_add: ptr:'a ptr -> offset:nativeint -> 'a ptr = "caml_ptr_add"
   external ptr_sub: ptr:'a ptr -> offset:nativeint -> 'a ptr = "caml_ptr_sub"
 

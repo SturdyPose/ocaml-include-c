@@ -1,5 +1,4 @@
 (test
  (name test_bindings)
- (modules test_bindings)
  (libraries alcotest cpp_generator)
 )
