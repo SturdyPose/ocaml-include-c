@@ -260,161 +260,37 @@ CAMLprim value caml_string_to_uint16(value inputString) {
   CAMLparam1(inputString);
   const char *str = String_val(inputString);
   size_t strLen = caml_string_length(inputString);
-  if (str == NULL || strLen == 0)
-    caml_failwith("uint16_of_string fail, empty string");
-  const char *it = str;
+
+  uint64_t val;
+  int sign;
+  ParseResult res = parse_number(str, strLen, &val, &sign);
+
+  if (res != PARSE_SUCCESS) {
+     if (res == PARSE_INVALID_INPUT) caml_failwith("uint16_of_string fail, empty string");
+     if (res == PARSE_OVERFLOW) caml_failwith("uint16_of_string fail, can't fit into uint16");
+     caml_failwith("uint16_of_string fail");
+  }
   
-  if (*it == '-') {
-      caml_failwith("uint16_of_string fail, negative sign");
-  } else if (*it == '+') {
-      it++;
-  }
+  if (sign == -1) caml_failwith("uint16_of_string fail, negative sign");
+  if (val > UINT16_MAX) caml_failwith("uint16_of_string fail, can't fit into uint16");
 
-  // Check if string became empty after sign
-  if (*it == '\0') {
-      caml_failwith("uint16_of_string fail, empty after sign");
-  }
-
-  int32_t base = 10;
-  if (*it == '0') {
-    switch (*(it + 1)) {
-    case 'x':
-    case 'X':
-      it += 2;
-      base = 16;
-      break;
-    case 'o':
-    case 'O':
-      it += 2;
-      base = 8;
-      break;
-    case 'b':
-    case 'B':
-      it += 2;
-      base = 2;
-      break;
-    case 'u':
-    case 'U':
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      ++it;
-      break;
-    case '\0':
-      break;
-    default:
-      caml_failwith("uint16_of_string fail, unrecognized char");
-      break;
-    }
-  }
-
-  if (*it == '\0' && strLen > 1 && base != 10) {
-       caml_failwith("uint16_of_string, missing digits after prefix");
-  }
-
-  uint32_t result = 0;
-  while (*it) {
-    int32_t toAdd = parseDigit(*it);
-    if (base <= toAdd || toAdd == -1)
-      caml_failwith("uint16_of_string fail, char not part of the base");
-    
-    uint32_t new_result = result * base + toAdd;
-    if (new_result > UINT16_MAX) { 
-        caml_failwith("uint16_of_string fail, can't fit into uint16");
-    }
-    
-    result = new_result;
-    ++it;
-  }
-
-  CAMLreturn(caml_copy_uint16((uint16_t)result));
+  CAMLreturn(caml_copy_uint16((uint16_t)val));
 }
 
 CAMLprim value caml_string_to_uint16_opt(value inputString) {
   CAMLparam1(inputString);
   const char *str = String_val(inputString);
   size_t strLen = caml_string_length(inputString);
-  if (str == NULL || strLen == 0)
-      CAMLreturn(Val_none);
-  const char *it = str;
-  
-  if (*it == '-') {
-      CAMLreturn(Val_none);
-  } else if (*it == '+') {
-      it++;
-  }
 
-  // Check if string became empty after sign
-  if (*it == '\0') {
-      CAMLreturn(Val_none);
-  }
+  uint64_t val;
+  int sign;
+  ParseResult res = parse_number(str, strLen, &val, &sign);
 
-  int32_t base = 10;
-  if (*it == '0') {
-    switch (*(it + 1)) {
-    case 'x':
-    case 'X':
-      it += 2;
-      base = 16;
-      break;
-    case 'o':
-    case 'O':
-      it += 2;
-      base = 8;
-      break;
-    case 'b':
-    case 'B':
-      it += 2;
-      base = 2;
-      break;
-    case 'u':
-    case 'U':
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      ++it;
-      break;
-    case '\0':
-      break;
-    default:
-      CAMLreturn(Val_none);
-      break;
-    }
-  }
+  if (res != PARSE_SUCCESS) CAMLreturn(Val_none);
+  if (sign == -1) CAMLreturn(Val_none);
+  if (val > UINT16_MAX) CAMLreturn(Val_none);
 
-  if (*it == '\0' && strLen > 1 && base != 10) {
-      CAMLreturn(Val_none);
-  }
-
-  uint32_t result = 0;
-  while (*it) {
-    int32_t toAdd = parseDigit(*it);
-    if (base <= toAdd || toAdd == -1)
-      CAMLreturn(Val_none);
-    
-    uint32_t new_result = result * base + toAdd;
-    if (new_result > UINT16_MAX)
-      CAMLreturn(Val_none);
-    
-    result = new_result;
-    ++it;
-  }
-
-  CAMLreturn(caml_alloc_some(caml_copy_uint16((uint16_t)result)));
+  CAMLreturn(caml_alloc_some(caml_copy_uint16((uint16_t)val)));
 }
 
 CAMLprim value caml_uint16_logand(value a, value b) {

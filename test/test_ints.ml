@@ -308,6 +308,19 @@ let test_string_roundtrip_i8 () =
   let output = Int8.of_string input |> Int8.to_string in
   (check string) "string -> int8 -> string" input output
 
+let test_string_parse_i8 () =
+  let input = "128" in
+  begin
+  match Int8.of_string input with
+  | exception _ -> (check bool) "expected" true true 
+  | res -> Alcotest.fail ("Input int is too big to fit into i8, wrong parse, output :" ^ Int8.to_string res)
+  end;
+  let input2 = "-128" in
+  match Int8.of_string input2 with
+  | exception exc -> (check bool) ("Unexpected:" ^ (Printexc.to_string exc)) false true 
+  | res -> (check int8) "Expecting -128" (Int8.of_int (-128)) res
+  
+
 let tests () =
    [
     "Basic_U64", [
@@ -408,6 +421,7 @@ let tests () =
       test_case "Shifts" `Quick test_shifts_i8;
     ];
     "Conversion_I8", [
+      test_case "String parse" `Quick test_string_parse_i8;
       test_case "String Roundtrip" `Quick test_string_roundtrip_i8;
     ]
   ];

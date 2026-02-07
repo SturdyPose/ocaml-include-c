@@ -230,135 +230,38 @@ CAMLprim value caml_uint32_formatter()
 CAMLprim value caml_string_to_uint32(value inputString) {
   CAMLparam1(inputString);
   const char *str = String_val(inputString);
-  // strLen is for extra safety
   size_t strLen = caml_string_length(inputString);
-  if (str == NULL || strLen == 0)
-    caml_failwith("uint32_of_string fail, empty string");
-  const char *it = str;
-  uint32_t base = 10;
-  if (*it == '0') {
-    switch (*(it + 1)) {
-    case 'x':
-    case 'X':
-      it += 2;
-      base = 16;
-      break;
-    case 'o':
-    case 'O':
-      it += 2;
-      base = 8;
-      break;
-    case 'b':
-    case 'B':
-      it += 2;
-      base = 2;
-      break;
-    case 'u':
-    case 'U':
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      ++it;
-      break;
-    case '\0':
-      break;
-    default:
-      caml_failwith("uint32_of_string fail, unrecognized char");
-      break;
-    }
-  }
 
-  if (*it == '\0' && strLen > 1 && base != 10) {
-    caml_failwith("uint32_of_string, missing digits after prefix");
-  }
+  uint64_t val;
+  int sign;
+  ParseResult res = parse_number(str, strLen, &val, &sign);
 
-  uint32_t result = 0;
-  while (*it) {
-    uint32_t toAdd = parseDigit(*it);
-    if (base <= toAdd || toAdd == -1)
-      caml_failwith("uint32_of_string fail, char not part of the base");
-    if ((UINT32_MAX - toAdd) / base < result)
-      caml_failwith("uint32_of_string fail, can't fit into uint32");
-    result *= base;
-    result += (uint32_t)toAdd;
-    ++it;
+  if (res != PARSE_SUCCESS) {
+     if (res == PARSE_INVALID_INPUT) caml_failwith("uint32_of_string fail, empty string");
+     if (res == PARSE_OVERFLOW) caml_failwith("uint32_of_string fail, can't fit into uint32");
+     caml_failwith("uint32_of_string fail");
   }
+  
+  if (sign == -1) caml_failwith("uint32_of_string fail, negative sign");
+  if (val > UINT32_MAX) caml_failwith("uint32_of_string fail, can't fit into uint32");
 
-  CAMLreturn(caml_copy_uint32(result));
+  CAMLreturn(caml_copy_uint32((uint32_t)val));
 }
 
 CAMLprim value caml_string_to_uint32_opt(value inputString) {
   CAMLparam1(inputString);
   const char *str = String_val(inputString);
-  // strLen is for extra safety
   size_t strLen = caml_string_length(inputString);
-  if (str == NULL || strLen == 0)
-    CAMLreturn(Val_none);
-  const char *it = str;
-  uint32_t base = 10;
-  if (*it == '0') {
-    switch (*(it + 1)) {
-    case 'x':
-    case 'X':
-      it += 2;
-      base = 16;
-      break;
-    case 'o':
-    case 'O':
-      it += 2;
-      base = 8;
-      break;
-    case 'b':
-    case 'B':
-      it += 2;
-      base = 2;
-      break;
-    case 'u':
-    case 'U':
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      ++it;
-      break;
-    case '\0':
-      break;
-    default:
-      CAMLreturn(Val_none);
-      break;
-    }
-  }
 
-  if (*it == '\0' && strLen > 1 && base != 10) {
-    CAMLreturn(Val_none);
-  }
+  uint64_t val;
+  int sign;
+  ParseResult res = parse_number(str, strLen, &val, &sign);
 
-  uint32_t result = 0;
-  while (*it) {
-    uint32_t toAdd = parseDigit(*it);
-    if (base <= toAdd || toAdd == -1)
-      CAMLreturn(Val_none);
-    if ((UINT32_MAX - toAdd) / base < result)
-      CAMLreturn(Val_none);
-    result *= base;
-    result += (uint32_t)toAdd;
-    ++it;
-  }
+  if (res != PARSE_SUCCESS) CAMLreturn(Val_none);
+  if (sign == -1) CAMLreturn(Val_none);
+  if (val > UINT32_MAX) CAMLreturn(Val_none);
 
-  CAMLreturn(caml_alloc_some(caml_copy_uint32(result)));
+  CAMLreturn(caml_alloc_some(caml_copy_uint32((uint32_t)val)));
 }
 
 CAMLprim value caml_uint32_logand(value a, value b) {
