@@ -29,6 +29,13 @@
 #define UInt32_val(v) (*((uint32_t *)Data_custom_val(v)))
 #define UInt64_val(v) (*((uint64_t *)Data_custom_val(v)))
 
+CAMLexport value caml_copy_uint8(uint8_t i);
+CAMLexport value caml_copy_uint16(uint16_t i);
+CAMLexport value caml_copy_uint32(uint32_t i);
+CAMLexport value caml_copy_uint64(uint64_t i);
+CAMLexport value caml_copy_int8(int8_t i);
+CAMLexport value caml_copy_int16(int16_t i);
+
 static inline int parseDigit(char c) {
   switch (c) {
   case '0':

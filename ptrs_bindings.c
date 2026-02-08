@@ -99,24 +99,6 @@ CAMLprim value caml_ptr_free(value ptr) {
     CAMLreturn(p);                                                             \
   }
 
-CAMLprim value caml_peek_bool(value ptrAddr) {
-  CAMLparam1(ptrAddr);
-  bool *pBool = (bool *)Ptr_val(ptrAddr);
-  CAMLreturn(Val_bool(*pBool));
-}
-
-CAMLprim value caml_peek_int(value ptrAddr) {
-  CAMLparam1(ptrAddr);
-  int *pInt = (int *)Ptr_val(ptrAddr);
-  CAMLreturn(Val_int(*pInt));
-}
-
-CAMLprim value caml_peek_int64(value ptrAddr) {
-  CAMLparam1(ptrAddr);
-  int64_t *pInt = (int64_t *)Ptr_val(ptrAddr);
-  CAMLreturn(caml_copy_int64(*pInt));
-}
-
 // Based on https://en.wikipedia.org/wiki/C_data_types
 CREATE_PRIMITIVE(bool, bool, false)
 
@@ -220,3 +202,61 @@ CAMLprim value caml_poke_u64(value ptr, value val) {
   *p = (uint64_t)UInt64_val(val);
   CAMLreturn(Val_unit);
 }
+
+/************
+Peeking values
+*************/
+CAMLprim value caml_peek_bool(value ptr) {
+  CAMLparam1(ptr);
+  bool* p = (bool*)Ptr_val(ptr);
+  CAMLreturn(Val_bool(*p));
+}
+
+CAMLprim value caml_peek_i8(value ptr) {
+  CAMLparam1(ptr);
+  int8_t* p = (int8_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_int8(*p));
+}
+
+CAMLprim value caml_peek_i16(value ptr) {
+  CAMLparam1(ptr);
+  int16_t* p = (int16_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_int16(*p));
+}
+
+CAMLprim value caml_peek_i32(value ptr) {
+  CAMLparam1(ptr);
+  int32_t* p = (int32_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_int32(*p));
+}
+
+CAMLprim value caml_peek_i64(value ptr) {
+  CAMLparam1(ptr);
+  int64_t* p = (int64_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_int64(*p));
+}
+
+CAMLprim value caml_peek_u8(value ptr) {
+  CAMLparam1(ptr);
+  uint8_t* p = (uint8_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_uint8(*p));
+}
+
+CAMLprim value caml_peek_u16(value ptr) {
+  CAMLparam1(ptr);
+  uint16_t* p = (uint16_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_uint16(*p));
+}
+
+CAMLprim value caml_peek_u32(value ptr) {
+  CAMLparam1(ptr);
+  uint32_t* p = (uint32_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_uint32(*p));
+}
+
+CAMLprim value caml_peek_u64(value ptr) {
+  CAMLparam1(ptr);
+  uint64_t* p = (uint64_t*)Ptr_val(ptr);
+  CAMLreturn(caml_copy_uint64(*p));
+}
+
