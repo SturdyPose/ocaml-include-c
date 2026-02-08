@@ -1,9 +1,7 @@
 open Alcotest
 open Cpp_generator
+open Alcotest_helpers
 
-let pp_u64 ppf v = 
-  Format.fprintf ppf "%s" (UInt64.to_string v)
-let uint64 = Alcotest.testable pp_u64 UInt64.equal
 let test_zero_u64 ()=
   (check string) "same value" "0" (UInt64.zero |> UInt64.to_string)
 let test_one_u64()=
@@ -17,8 +15,6 @@ let test_overflow_u64()=
 
 let test_min_u64()=
   (check uint64) "same value" (UInt64.min_int) (UInt64.of_int 0)
-
-let uint64 = Alcotest.testable pp_u64 UInt64.equal
 
 let test_arithmetic_u64 () =
   let two = UInt64.add UInt64.one UInt64.one in
@@ -54,11 +50,6 @@ let test_string_roundtrip_u64 () =
   let input = "1234567890123456789" in
   let output = UInt64.of_string input |> UInt64.to_string in
   (check string) "string -> uint64 -> string" input output
-
-let pp_u32 ppf v = 
-  Format.fprintf ppf "%s" (UInt32.to_string v)
-
-let uint32 = Alcotest.testable pp_u32 UInt32.equal
 
 (* 2. Basic Constant Tests *)
 let test_zero_u32 () =
@@ -112,11 +103,6 @@ let test_string_roundtrip_u32 () =
   let input = "4000000000" in
   let output = UInt32.of_string input |> UInt32.to_string in
   (check string) "string -> uint32 -> string" input output
-
-let pp_i16 ppf v = 
-  Format.fprintf ppf "%s" (Int16.to_string v)
-
-let int16 = Alcotest.testable pp_i16 Int16.equal
 
 let test_zero_i16 () =
   (check string) "same value" "0" (Int16.zero |> Int16.to_string)
@@ -172,9 +158,6 @@ let test_string_roundtrip_i16 () =
   (check string) "string -> int16 -> string" input output
 
 (* UInt16 Tests *)
-let pp_u16 ppf v = Format.fprintf ppf "%s" (UInt16.to_string v)
-let uint16 = Alcotest.testable pp_u16 UInt16.equal
-
 let test_zero_u16 () = (check string) "same value" "0" (UInt16.zero |> UInt16.to_string)
 let test_one_u16 () = (check int) "same value" 1 (UInt16.one |> UInt16.to_int)
 let test_max_u16 () = (check string) "same value" "65535" (UInt16.max_int |> UInt16.to_string)
@@ -219,9 +202,6 @@ let test_string_roundtrip_u16 () =
   (check string) "string -> uint16 -> string" input output
 
 (* UInt8 Tests *)
-let pp_u8 ppf v = Format.fprintf ppf "%s" (UInt8.to_string v)
-let uint8 = Alcotest.testable pp_u8 UInt8.equal
-
 let test_zero_u8 () = (check string) "same value" "0" (UInt8.zero |> UInt8.to_string)
 let test_one_u8 () = (check int) "same value" 1 (UInt8.one |> UInt8.to_int)
 let test_max_u8 () = (check string) "same value" "255" (UInt8.max_int |> UInt8.to_string)
@@ -263,9 +243,6 @@ let test_string_roundtrip_u8 () =
   (check string) "string -> uint8 -> string" input output
 
 (* Int8 Tests *)
-let pp_i8 ppf v = Format.fprintf ppf "%s" (Int8.to_string v)
-let int8 = Alcotest.testable pp_i8 Int8.equal
-
 let test_zero_i8 () = (check string) "same value" "0" (Int8.zero |> Int8.to_string)
 let test_one_i8 () = (check int) "same value" 1 (Int8.one |> Int8.to_int)
 let test_max_i8 () = (check string) "same value" "127" (Int8.max_int |> Int8.to_string)
