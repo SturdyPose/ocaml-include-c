@@ -156,3 +156,67 @@ CREATE_PRIMITIVE(int64, int64_t, 0)
 
 CREATE_PRIMITIVE(float, float, 0.0)
 CREATE_PRIMITIVE(double, double, 0.0)
+
+
+CAMLprim value caml_poke_bool(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  bool* p = (bool*)Ptr_val(ptr);
+  *p = Bool_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_i8(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  int8_t* p = (int8_t*)Ptr_val(ptr);
+  *p = (int8_t)Int8_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_i16(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  int16_t* p = (int16_t*)Ptr_val(ptr);
+  *p = (int16_t)Int16_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_i32(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  int32_t* p = (int32_t*)Ptr_val(ptr);
+  *p = (int32_t)Int32_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_i64(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  int64_t* p = (int64_t*)Ptr_val(ptr);
+  *p = (int64_t)Int64_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_u8(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  uint8_t* p = (uint8_t*)Ptr_val(ptr);
+  *p = (uint8_t)UInt8_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_u16(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  uint16_t* p = (uint16_t*)Ptr_val(ptr);
+  *p = (uint16_t)UInt16_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_u32(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  uint32_t* p = (uint32_t*)Ptr_val(ptr);
+  *p = (uint32_t)UInt32_val(val);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_poke_u64(value ptr, value val) {
+  CAMLparam2(ptr, val);
+  uint64_t* p = (uint64_t*)Ptr_val(ptr);
+  *p = (uint64_t)UInt64_val(val);
+  CAMLreturn(Val_unit);
+}

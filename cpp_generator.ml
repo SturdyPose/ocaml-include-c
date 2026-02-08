@@ -322,6 +322,32 @@ module CInteract = struct
 
   let alloc (p: 'a primitive) : ('a ptr) = ptr_alloc ~size:(sizeof p)
 
+  external poke_bool: p: bool ptr -> value: bool -> unit = "caml_poke_bool"
+  external poke_i8: p: Int8.t ptr -> value: Int8.t -> unit = "caml_poke_i8"
+  external poke_i16: p: Int16.t ptr -> value: Int16.t -> unit = "caml_poke_i16"
+  external poke_i32: p: Int32.t ptr -> value: Int32.t -> unit = "caml_poke_i32"
+  (* let poke_int: p: int ptr -> value: int -> unit = poke_i32  *)
+  external poke_i64: p: Int64.t ptr -> value: Int64.t -> unit = "caml_poke_i64"
+
+  external poke_u8: p: UInt8.t ptr -> value: UInt8.t -> unit = "caml_poke_u8"
+  external poke_u16: p: UInt16.t ptr -> value: UInt16.t -> unit = "caml_poke_u16"
+  external poke_u32: p: UInt32.t ptr -> value: UInt32.t -> unit = "caml_poke_u32"
+  (* let poke_uint: p: UInt32.t ptr -> value: UInt32.t -> unit = poke_u32  *)
+  external poke_u64: p: UInt64.t ptr -> value: UInt64.t -> unit = "caml_poke_u64"
+
+  external peek_bool: p: bool ptr -> bool = "caml_peek_bool"
+  external peek_i8: p: Int8.t ptr -> Int8.t = "caml_peek_i8"
+  external peek_i16: p: Int16.t ptr -> Int16.t = "caml_peek_i16"
+  external peek_i32: p: Int32.t ptr -> Int32.t = "caml_peek_i32"
+  (* let peek_int: p: int ptr -> value: int -> unit = peek_i32  *)
+  external peek_i64: p: Int64.t ptr -> Int64.t = "caml_peek_i64"
+
+  external peek_u8: p: UInt8.t ptr -> UInt8.t = "caml_peek_u8"
+  external peek_u16: p: UInt16.t ptr -> UInt16.t = "caml_peek_u16"
+  external peek_u32: p: UInt32.t ptr -> UInt32.t = "caml_peek_u32"
+  (* let peek_uint: p: UInt32.t ptr -> value: UInt32.t -> unit = peek_u32  *)
+  external peek_u64: p: UInt64.t ptr -> UInt64.t = "caml_peek_u64"
+
   (* external peek_int16: int32 ptr -> int32 = "caml_peek_ptr_int16"
   external peek_uint16: int32 ptr -> int32 = "caml_peek_ptr_uint16"
   external peek_int32: int32 ptr -> int32 = "caml_peek_ptr_int32"

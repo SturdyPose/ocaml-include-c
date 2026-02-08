@@ -210,9 +210,14 @@ CAMLprim value caml_string_to_uint64(value inputString) {
   ParseResult res = parse_number(str, strLen, &val, &sign);
 
   if (res != PARSE_SUCCESS) {
-     if (res == PARSE_INVALID_INPUT) caml_failwith("uint64_of_string fail, empty string");
-     if (res == PARSE_OVERFLOW) caml_failwith("uint64_of_string fail, can't fit into uint64");
-     caml_failwith("uint64_of_string fail");
+    switch (res) {
+    case PARSE_INVALID_INPUT:
+      caml_failwith("uint64_of_string fail, empty string");
+    case PARSE_OVERFLOW:
+      caml_failwith("uint64_of_string fail, can't fit into uint64");
+    default:
+      caml_failwith("uint64_of_string fail");
+    }
   }
   
   if (sign == -1) caml_failwith("uint64_of_string fail, negative sign");
