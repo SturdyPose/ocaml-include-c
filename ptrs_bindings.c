@@ -9,6 +9,7 @@
 #include <caml/mlvalues.h>
 
 // C headers
+#include <cstddef>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -82,6 +83,12 @@ CAMLprim value caml_ptr_sub(value ptr, value offset) {
   Ptr_val(ptrRes) = newPtr;
 
   CAMLreturn(ptrRes);
+}
+
+CAMLprim value caml_ptr_is_null(value ptr) {
+  CAMLparam1(ptr);
+  void* p = Ptr_val(ptr);
+  CAMLreturn(Val_bool(p == NULL));
 }
 
 CAMLprim value caml_ptr_free(value ptr) {
@@ -260,3 +267,24 @@ CAMLprim value caml_peek_u64(value ptr) {
   CAMLreturn(caml_copy_uint64(*p));
 }
 
+
+// Read arbitrary value
+CAMLprim value caml_peek_n(value ptr, value sizeVal) {
+  CAMLparam2(ptr, sizeVal);
+  CAMLlocal1(allocated);
+  void* p = Ptr_val(ptr);
+  size_t size = (size_t)Nativeint_val(sizeVal);
+
+  struct custom_operations n_alloc = {"n_alloc",
+                                      custom_finalize_default,
+                                      custom_compare_default,
+                                      custom_hash_default,
+                                      custom_serialize_default,
+                                      custom_deserialize_default,
+                                      custom_compare_ext_default,
+                                      custom_fixed_length_default};
+
+  allocated = caml_alloc_custom(&n_alloc, size, 0, 1);
+  memcpy(Data_custom_val(allocated), src, size);
+  CAMLreturn(allocated);
+}
