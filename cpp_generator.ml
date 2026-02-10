@@ -335,6 +335,7 @@ module CInteract = struct
   external poke_u32: ptr: UInt32.t ptr -> value: UInt32.t -> unit = "caml_poke_u32"
   (* let poke_uint: ptr: UInt32.t ptr -> value: UInt32.t -> unit = poke_u32  *)
   external poke_u64: ptr: UInt64.t ptr -> value: UInt64.t -> unit = "caml_poke_u64"
+  external poke_n: ptr: 't ptr -> value: 't -> size: Nativeint.t -> unit = "caml_poke_n"
 
   external peek_bool: ptr: bool ptr -> bool = "caml_peek_bool"
   external peek_i8: ptr: Int8.t ptr -> Int8.t = "caml_peek_i8"
@@ -349,14 +350,8 @@ module CInteract = struct
   (* let peek_uint: ptr: UInt32.t ptr -> value: UInt32.t -> unit = peek_u32  *)
   external peek_u64: ptr: UInt64.t ptr -> UInt64.t = "caml_peek_u64"
 
-  (* Peek arbitrary value *)
-  (* TODO!!!!!!! *)
-  (* TODO!!!!!!! *)
-  (* TODO!!!!!!! *)
-  (* TODO!!!!!!! *)
-  (* TODO!!!!!!! *)
-  (* This works only for block types!!!!! *)
   external peek_n: ptr: 't ptr -> size: nativeint -> 't = "caml_peek_n"
+  (* external peek_n_unboxed: ptr: 't ptr -> size: nativeint -> 't = "caml_peek_n_unboxed" *)
   external cast: 'a -> 'b = "%identity"
 
   (* external peek_int16: int32 ptr -> int32 = "caml_peek_ptr_int16"
@@ -396,12 +391,24 @@ type 't carray = {
   ptr: 't ptr
 }
 
+(* external memset = ptr: 't tpr *)
+
+let alloc_array len initValue = 
+  let size = sizeof initValue in
+  let pVal = ptr_alloc ~size:size in
+
+  {
+    length = len;
+    size_of_element = Nativeint.to_int size;
+    ptr = pVal
+  }
+
 let for_each callback carray =
   let {length; size_of_element; ptr} = carray in
   let rec for_each_help offset =
     let currentPtr = ptr_add ~ptr:ptr ~offset:(Nativeint.of_int offset) in
-    let currentVal = peek_n ~ptr:currentPtr ~size:(Nativeint.of_int size_of_element) in
-    callback (cast currentVal);
+    (* let currentVal = peek_n ~ptr:currentPtr ~size:(Nativeint.of_int size_of_element) in *)
+    callback currentPtr;
     let nextOffset = offset + size_of_element in
     if nextOffset >= (length * size_of_element) 
       then () 
@@ -409,6 +416,19 @@ let for_each callback carray =
   in
   for_each_help 0
 
+let for_each_ref callback carray =
+  let {length; size_of_element; ptr} = carray in
+  let rec for_each_help offset =
+    let currentPtr = ptr_add ~ptr:ptr ~offset:(Nativeint.of_int offset) in
+    let currentVal = peek_n ~ptr:currentPtr ~size:(Nativeint.of_int size_of_element) in
+    let currentValRef = ref currentVal in
+    callback (currentValRef);
+    let nextOffset = offset + size_of_element in
+    if nextOffset >= (length * size_of_element) 
+      then () 
+    else for_each_help (offset + size_of_element)
+  in
+  for_each_help 0
 
 (* let fill array =  *)
 

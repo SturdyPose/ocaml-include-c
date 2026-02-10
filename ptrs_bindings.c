@@ -9,9 +9,9 @@
 #include <caml/mlvalues.h>
 
 // C headers
-#include <cstddef>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 #include "shared.h"
@@ -64,7 +64,7 @@ CAMLprim value caml_ptr_add(value ptr, value offset) {
   size_t off = GET_SIZE(offset);
 
   // TODO: Maybe utilize small block allocations instead of this?
-  void *newPtr = (void *)(p + off);
+  void *newPtr = (void *)((char*)p + off);
   ptrRes = caml_alloc_custom(&manual_ptr_ops, sizeof(void *), 0, 1);
   Ptr_val(ptrRes) = newPtr;
 
@@ -78,7 +78,7 @@ CAMLprim value caml_ptr_sub(value ptr, value offset) {
   size_t off = GET_SIZE(offset);
 
   // TODO: Maybe utilize small block allocations instead of this?
-  void *newPtr = (void *)(p - off);
+  void *newPtr = (void *)((char*)p - off);
   ptrRes = caml_alloc_custom(&manual_ptr_ops, sizeof(void *), 0, 1);
   Ptr_val(ptrRes) = newPtr;
 
@@ -210,6 +210,27 @@ CAMLprim value caml_poke_u64(value ptr, value val) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value caml_poke_n(value ptr, value ocamlVal, value sizeVal) 
+{
+  CAMLparam3(ptr, ocamlVal, sizeVal);
+
+  void* dst = Ptr_val(ptr);
+  size_t size = (size_t)Nativeint_val(sizeVal);
+
+  if(Is_block(ocamlVal))
+  {
+    memcpy(dst, Data_custom_val(ocamlVal), size);
+  }
+  else
+  {
+    intnat v = Long_val(ocamlVal);
+    memcpy(dst, &v, size);
+  }
+
+  CAMLreturn(Val_unit);
+}
+
+
 /************
 Peeking values
 *************/
@@ -271,20 +292,50 @@ CAMLprim value caml_peek_u64(value ptr) {
 // Read arbitrary value
 CAMLprim value caml_peek_n(value ptr, value sizeVal) {
   CAMLparam2(ptr, sizeVal);
-  CAMLlocal1(allocated);
-  void* p = Ptr_val(ptr);
+  CAMLlocal2(allocated, readVal);
+  void* pSrc = Ptr_val(ptr);
+  if(pSrc == NULL) caml_failwith("Nullptr in caml_peek_n");
   size_t size = (size_t)Nativeint_val(sizeVal);
 
-  struct custom_operations n_alloc = {"n_alloc",
-                                      custom_finalize_default,
-                                      custom_compare_default,
-                                      custom_hash_default,
-                                      custom_serialize_default,
-                                      custom_deserialize_default,
-                                      custom_compare_ext_default,
-                                      custom_fixed_length_default};
+  if(Is_block(*(value*)pSrc))
+  {
+    struct custom_operations n_alloc = {"n_alloc",
+                                        custom_finalize_default,
+                                        custom_compare_default,
+                                        custom_hash_default,
+                                        custom_serialize_default,
+                                        custom_deserialize_default,
+                                        custom_compare_ext_default,
+                                        custom_fixed_length_default};
 
-  allocated = caml_alloc_custom(&n_alloc, size, 0, 1);
-  memcpy(Data_custom_val(allocated), src, size);
-  CAMLreturn(allocated);
+    allocated = caml_alloc_custom(&n_alloc, size, 0, 1);
+    memcpy(Data_custom_val(allocated), pSrc, size);
+    // readVal = (value)Data_custom_val(allocated);
+    CAMLreturn(allocated);
+  } else
+  {
+    CAMLreturn(Int_val(*(int*)pSrc));
+  }
 }
+
+// // Read arbitrary value
+// CAMLprim value caml_peek_n_unboxed(value ptr, value sizeVal) {
+//   CAMLparam2(ptr, sizeVal);
+//   CAMLlocal2(allocated, readVal);
+//   void* pSrc = Ptr_val(ptr);
+//   if(pSrc == NULL) caml_failwith("Nullptr in caml_peek_n");
+//   size_t size = (size_t)Nativeint_val(sizeVal);
+
+//   struct custom_operations n_alloc = {"n_alloc",
+//                                       custom_finalize_default,
+//                                       custom_compare_default,
+//                                       custom_hash_default,
+//                                       custom_serialize_default,
+//                                       custom_deserialize_default,
+//                                       custom_compare_ext_default,
+//                                       custom_fixed_length_default};
+
+//   allocated = caml_alloc_custom(&n_alloc, size, 0, 1);
+//   memcpy(Data_custom_val(allocated), pSrc, size);
+//   CAMLreturn(allocated);
+// }
