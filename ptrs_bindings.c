@@ -95,6 +95,7 @@ CAMLprim value caml_ptr_free(value ptr) {
   CAMLparam1(ptr);
   void* p = Ptr_val(ptr);
   free(p);
+  CAMLreturn(Val_unit);
 }
 
 #define CREATE_PRIMITIVE(name, type, default_val)                              \
@@ -223,8 +224,7 @@ CAMLprim value caml_poke_n(value ptr, value ocamlVal, value sizeVal)
   }
   else
   {
-    intnat v = Long_val(ocamlVal);
-    memcpy(dst, &v, size);
+    memcpy(dst, &ocamlVal, size);
   }
 
   CAMLreturn(Val_unit);
@@ -293,15 +293,15 @@ CAMLprim value caml_peek_u64(value ptr) {
 CAMLprim value caml_peek_n(value ptr, value sizeVal) {
   CAMLparam2(ptr, sizeVal);
   CAMLlocal1(allocated);
-  void* pSrc = Ptr_val(ptr);
+  value* pSrc = (value*)Ptr_val(ptr);
   if(pSrc == NULL) caml_failwith("Nullptr in caml_peek_n");
   size_t size = (size_t)Nativeint_val(sizeVal);
 
-  const bool isBoxed = Is_block(*(int*)pSrc);
-  if (isBoxed) {
-    int v;
-    memcpy(&v, pSrc, size);
-    CAMLreturn(Val_long(v));
+  const bool isBoxed = Is_block(*pSrc);
+  if (!isBoxed) {
+    union values {size_t maxVal; unsigned char vals[sizeof(size_t)]} values = {0};
+    memcpy(values.vals, pSrc, size);
+    CAMLreturn(values.maxVal);
   }
   else {
     static struct custom_operations n_alloc = {"n_alloc",

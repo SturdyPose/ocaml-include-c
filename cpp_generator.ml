@@ -407,7 +407,6 @@ let for_each callback carray =
   let {length; size_of_element; ptr} = carray in
   let rec for_each_help offset =
     let currentPtr = ptr_add ~ptr:ptr ~offset:(Nativeint.of_int offset) in
-    (* let currentVal = peek_n ~ptr:currentPtr ~size:(Nativeint.of_int size_of_element) in *)
     callback currentPtr;
     let nextOffset = offset + size_of_element in
     if nextOffset >= (length * size_of_element) 
@@ -422,11 +421,12 @@ let for_each_ref callback carray =
     let currentPtr = ptr_add ~ptr:ptr ~offset:(Nativeint.of_int offset) in
     let currentVal = peek_n ~ptr:currentPtr ~size:(Nativeint.of_int size_of_element) in
     let currentValRef = ref currentVal in
-    callback (currentValRef);
+    callback currentValRef;
+    poke_n ~ptr:currentPtr ~value:!currentValRef ~size:(Nativeint.of_int size_of_element);
     let nextOffset = offset + size_of_element in
     if nextOffset >= (length * size_of_element) 
       then () 
-    else for_each_help (offset + size_of_element)
+    else for_each_help nextOffset
   in
   for_each_help 0
 
