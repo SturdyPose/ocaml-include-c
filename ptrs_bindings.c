@@ -292,29 +292,30 @@ CAMLprim value caml_peek_u64(value ptr) {
 // Read arbitrary value
 CAMLprim value caml_peek_n(value ptr, value sizeVal) {
   CAMLparam2(ptr, sizeVal);
-  CAMLlocal2(allocated, readVal);
+  CAMLlocal1(allocated);
   void* pSrc = Ptr_val(ptr);
   if(pSrc == NULL) caml_failwith("Nullptr in caml_peek_n");
   size_t size = (size_t)Nativeint_val(sizeVal);
 
-  if(Is_block(*(value*)pSrc))
-  {
-    struct custom_operations n_alloc = {"n_alloc",
-                                        custom_finalize_default,
-                                        custom_compare_default,
-                                        custom_hash_default,
-                                        custom_serialize_default,
-                                        custom_deserialize_default,
-                                        custom_compare_ext_default,
-                                        custom_fixed_length_default};
+  const bool isBoxed = Is_block(*(int*)pSrc);
+  if (isBoxed) {
+    int v;
+    memcpy(&v, pSrc, size);
+    CAMLreturn(Val_long(v));
+  }
+  else {
+    static struct custom_operations n_alloc = {"n_alloc",
+                                               custom_finalize_default,
+                                               custom_compare_default,
+                                               custom_hash_default,
+                                               custom_serialize_default,
+                                               custom_deserialize_default,
+                                               custom_compare_ext_default,
+                                               custom_fixed_length_default};
 
     allocated = caml_alloc_custom(&n_alloc, size, 0, 1);
     memcpy(Data_custom_val(allocated), pSrc, size);
-    // readVal = (value)Data_custom_val(allocated);
     CAMLreturn(allocated);
-  } else
-  {
-    CAMLreturn(Int_val(*(int*)pSrc));
   }
 }
 

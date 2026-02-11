@@ -43,7 +43,16 @@ let test_foreach() =
   ptr_free ~ptr:pValStart;
   ()
 
-let test_peek_poke_n () =
+let test_peek_poke_n_unboxed () =
+  let inputVal = 420 in
+  let pVal = ptr_alloc ~size:4n in
+  poke_n ~ptr:pVal ~value:inputVal ~size:4n;
+  let resVal = peek_n ~ptr:pVal ~size:4n in
+  Alcotest.(check int) "Expecting same input value as read value" inputVal resVal;
+  ptr_free ~ptr:pVal;
+  ()
+
+let test_peek_poke_n_boxed () =
   let inputVal = 420 in
   let pVal = ptr_alloc ~size:4n in
   poke_n ~ptr:pVal ~value:inputVal ~size:4n;
@@ -55,7 +64,8 @@ let test_peek_poke_n () =
 
 let pointerTests () = [
     "Ptr_test", [
-      test_case "poke n peek" `Quick test_peek_poke_n;
+      test_case "poke n peek unboxed" `Quick test_peek_poke_n_unboxed;
+      test_case "poke n peek boxed" `Quick test_peek_poke_n_boxed;
     ];
     "Array_test", [
       test_case "fill array" `Quick test_ptrs;
