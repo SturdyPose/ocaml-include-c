@@ -1,6 +1,10 @@
 
 type 'a ptr
 
+module Testing = struct
+  external hook_fail_functions: unit -> unit = "caml_hook_fail"
+end
+
 module Int8 = struct
   type t
   external _zero : unit -> t = "caml_zero_int8"
@@ -391,12 +395,13 @@ type 't carray = {
   ptr: 't ptr
 }
 
+let word_size = Sys.word_size / 8
+
 (* external memset = ptr: 't tpr *)
 
 let alloc_array len initValue = 
   let size = sizeof initValue in
   let pVal = ptr_alloc ~size:size in
-
   {
     length = len;
     size_of_element = Nativeint.to_int size;
@@ -413,7 +418,9 @@ let for_each callback carray =
       then () 
     else for_each_help (offset + size_of_element)
   in
-  for_each_help 0
+  if length > 0 then
+    for_each_help 0
+  else ()
 
 let for_each_ref callback carray =
   let {length; size_of_element; ptr} = carray in
@@ -424,11 +431,30 @@ let for_each_ref callback carray =
     callback currentValRef;
     poke_n ~ptr:currentPtr ~value:!currentValRef ~size:(Nativeint.of_int size_of_element);
     let nextOffset = offset + size_of_element in
+    if nextOffset >= (length * size_of_element ) 
+      then () 
+    else for_each_help nextOffset
+  in
+  if length > 0 then
+    for_each_help 0
+  else ()
+
+(* let map (callback: 'a -> 'b) (carray: 'a array) =
+  let {length; size_of_element; ptr} = carray in
+  let rec for_each_help offset =
+    let currentPtr = ptr_add ~ptr:ptr ~offset:(Nativeint.of_int offset) in
+    let currentVal = peek_n ~ptr:currentPtr ~size:(Nativeint.of_int size_of_element) in
+    callback currentVal;
+    poke_n ~ptr:currentPtr ~value:!currentValRef ~size:(Nativeint.of_int size_of_element);
+    let nextOffset = offset + size_of_element in
     if nextOffset >= (length * size_of_element) 
       then () 
     else for_each_help nextOffset
   in
-  for_each_help 0
+  if length > 0 then
+    for_each_help 0
+  else () *)
+
 
 (* let fill array =  *)
 

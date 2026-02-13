@@ -9,12 +9,34 @@
 #include <caml/mlvalues.h>
 
 // C headers
+#include <signal.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
 #include "shared.h"
+
+static void throw_caml_exception(int)
+{
+  caml_failwith("Exception occured");
+}
+
+CAMLprim value caml_hook_fail() {
+  CAMLparam0();
+
+  signal(SIGABRT, &throw_caml_exception);
+  signal(SIGSEGV, &throw_caml_exception);
+  signal(SIGILL, &throw_caml_exception);
+  signal(SIGTERM, &throw_caml_exception);
+  signal(SIGFPE, &throw_caml_exception);
+  signal(SIGINT, &throw_caml_exception);
+
+
+  CAMLreturn(Val_unit);
+}
+
 
 #define Ptr_val(v) (*(void **)Data_custom_val(v))
 
@@ -224,7 +246,7 @@ CAMLprim value caml_poke_n(value ptr, value ocamlVal, value sizeVal)
   }
   else
   {
-    memcpy(dst, &ocamlVal, size);
+    memcpy(dst, &ocamlVal, sizeof(size_t));
   }
 
   CAMLreturn(Val_unit);
@@ -293,25 +315,26 @@ CAMLprim value caml_peek_u64(value ptr) {
 CAMLprim value caml_peek_n(value ptr, value sizeVal) {
   CAMLparam2(ptr, sizeVal);
   CAMLlocal1(allocated);
-  value* pSrc = (value*)Ptr_val(ptr);
+  void* pSrc = Ptr_val(ptr);
   if(pSrc == NULL) caml_failwith("Nullptr in caml_peek_n");
   size_t size = (size_t)Nativeint_val(sizeVal);
 
-  const bool isBoxed = Is_block(*pSrc);
-  if (!isBoxed) {
-    union values {size_t maxVal; unsigned char vals[sizeof(size_t)]} values = {0};
-    memcpy(values.vals, pSrc, size);
-    CAMLreturn(values.maxVal);
+  const bool isUnboxed = size == sizeof(size_t) && !Is_block(*(value*)pSrc);
+  if (isUnboxed) {
+    size_t val = 0;
+    memcpy(&val, pSrc, sizeof(size_t));
+    CAMLreturn(val);
   }
   else {
-    static struct custom_operations n_alloc = {"n_alloc",
-                                               custom_finalize_default,
-                                               custom_compare_default,
-                                               custom_hash_default,
-                                               custom_serialize_default,
-                                               custom_deserialize_default,
-                                               custom_compare_ext_default,
-                                               custom_fixed_length_default};
+    struct custom_fixed_length len = {size, size};
+    struct custom_operations n_alloc = {"n_alloc",
+                                        custom_finalize_default,
+                                        custom_compare_default,
+                                        custom_hash_default,
+                                        custom_serialize_default,
+                                        custom_deserialize_default,
+                                        custom_compare_ext_default,
+                                        &len};
 
     allocated = caml_alloc_custom(&n_alloc, size, 0, 1);
     memcpy(Data_custom_val(allocated), pSrc, size);
